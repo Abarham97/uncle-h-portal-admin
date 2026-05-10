@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import config from '../config'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 export default function Inquiries() {
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
+  const isMobile = useIsMobile()
 
   useEffect(() => { fetchBookings() }, [])
 
@@ -19,10 +21,17 @@ export default function Inquiries() {
   }
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden' }}>
+    <div style={{ display:'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', overflow: isMobile ? 'visible' : 'hidden' }}>
 
       {/* LEFT — Bookings list */}
-      <div style={{ width:340, borderRight:'1px solid #222', display:'flex', flexDirection:'column' }}>
+      <div style={{
+        width: isMobile ? '100%' : 340,
+        borderRight: isMobile ? 'none' : '1px solid #222',
+        borderBottom: isMobile ? '1px solid #222' : 'none',
+        display: isMobile && selected ? 'none' : 'flex',
+        flexDirection:'column',
+        maxHeight: isMobile ? '45vh' : 'unset',
+      }}>
         <div style={{ padding:'24px 20px 16px', borderBottom:'1px solid #1a1a1a' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <h2 style={{ fontSize:16, fontWeight:600, color:'#fff' }}>Bookings</h2>
@@ -54,7 +63,11 @@ export default function Inquiries() {
       </div>
 
       {/* RIGHT — Booking detail */}
-      <div style={{ flex:1, overflowY:'auto', padding:32 }}>
+      <div style={{
+        flex:1, overflowY:'auto',
+        padding: isMobile ? 16 : 32,
+        display: isMobile && !selected ? 'none' : 'block',
+      }}>
         {!selected ? (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%' }}>
             <div style={{ fontSize:48, marginBottom:16 }}>📅</div>
@@ -62,11 +75,19 @@ export default function Inquiries() {
           </div>
         ) : (
           <>
+            {/* Mobile back button */}
+            {isMobile && (
+              <button onClick={() => setSelected(null)} style={{
+                background:'none', border:'none', color:'#cc1414', fontSize:13,
+                cursor:'pointer', padding:'0 0 16px', display:'flex', alignItems:'center', gap:6,
+              }}>← Back</button>
+            )}
+
             {/* Header */}
             <div style={{ background:'#141414', border:'1px solid #222', padding:24, marginBottom:24 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
                 <div>
-                  <h2 style={{ fontSize:22, fontWeight:700, color:'#fff' }}>{selected.firstName} {selected.lastName}</h2>
+                  <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight:700, color:'#fff' }}>{selected.firstName} {selected.lastName}</h2>
                   <div style={{ fontSize:14, color:'#cc1414', marginTop:4, fontWeight:700 }}>{selected.service}</div>
                 </div>
                 <div style={{ background:'rgba(204,20,20,0.1)', border:'1px solid rgba(204,20,20,0.3)', padding:'6px 14px' }}>
@@ -75,7 +96,7 @@ export default function Inquiries() {
               </div>
 
               {/* Details grid */}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12 }}>
                 {[
                   { label:'Phone', val:selected.phone || '—' },
                   { label:'Email', val:selected.email || '—' },
@@ -100,7 +121,7 @@ export default function Inquiries() {
             )}
 
             {/* Action buttons */}
-            <div style={{ display:'flex', gap:12 }}>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:12 }}>
               <a href={`tel:${selected.phone}`} style={{
                 ...btnRed, textDecoration:'none', display:'inline-block'
               }}>📞 Call Customer</a>

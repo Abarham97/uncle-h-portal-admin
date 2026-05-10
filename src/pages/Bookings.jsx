@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import config from '../config'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const SERVICE_OPTIONS = [
   "Leather Repair (Cracks / Tears)",
@@ -36,6 +37,7 @@ export default function Bookings() {
   const [saving, setSaving] = useState(false)
   const [filterStatus, setFilterStatus] = useState('All')
   const [editData, setEditData] = useState(null)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     fetchAppointments()
@@ -121,10 +123,17 @@ const updateStatus = async (id, status) => {
     : appointments.filter(a => a.status === filterStatus)
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden' }}>
+    <div style={{ display:'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', overflow: isMobile ? 'visible' : 'hidden' }}>
 
       {/* LEFT — Appointments list */}
-      <div style={{ width:340, borderRight:'1px solid #222', display:'flex', flexDirection:'column' }}>
+      <div style={{
+        width: isMobile ? '100%' : 340,
+        borderRight: isMobile ? 'none' : '1px solid #222',
+        borderBottom: isMobile ? '1px solid #222' : 'none',
+        display: isMobile && selected ? 'none' : 'flex',
+        flexDirection:'column',
+        maxHeight: isMobile ? '45vh' : 'unset',
+      }}>
         <div style={{ padding:'24px 20px 16px', borderBottom:'1px solid #1a1a1a' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
             <h2 style={{ fontSize:16, fontWeight:600, color:'#fff' }}>Bookings</h2>
@@ -170,7 +179,11 @@ const updateStatus = async (id, status) => {
       </div>
 
       {/* RIGHT — Appointment detail */}
-      <div style={{ flex:1, overflowY:'auto', padding:32 }}>
+      <div style={{
+        flex:1, overflowY:'auto',
+        padding: isMobile ? 16 : 32,
+        display: isMobile && !selected ? 'none' : 'block',
+      }}>
         {!selected ? (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%' }}>
             <div style={{ fontSize:48, marginBottom:16 }}>📅</div>
@@ -179,11 +192,19 @@ const updateStatus = async (id, status) => {
           </div>
         ) : (
           <>
+            {/* Mobile back button */}
+            {isMobile && (
+              <button onClick={() => setSelected(null)} style={{
+                background:'none', border:'none', color:'#cc1414', fontSize:13,
+                cursor:'pointer', padding:'0 0 16px', display:'flex', alignItems:'center', gap:6,
+              }}>← Back</button>
+            )}
+
             {/* Header */}
             <div style={{ background:'#141414', border:'1px solid #222', padding:24, marginBottom:24 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
                 <div>
-                  <h2 style={{ fontSize:22, fontWeight:700, color:'#fff' }}>
+                  <h2 style={{ fontSize: isMobile ? 18 : 22, fontWeight:700, color:'#fff' }}>
                     {selected.customer ? `${selected.customer.firstName} ${selected.customer.lastName}` : `Customer #${selected.customerID}`}
                   </h2>
                   <div style={{ fontSize:14, color:'#cc1414', marginTop:4, fontWeight:700 }}>{selected.service}</div>
@@ -200,7 +221,7 @@ const updateStatus = async (id, status) => {
               </div>
 
               {/* Details */}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:20 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:20 }}>
                 {[
                   { label:'Date', val:selected.appointmentDate || '—' },
                   { label:'Time', val:selected.appointmentTime || '—' },
@@ -208,7 +229,6 @@ const updateStatus = async (id, status) => {
                   { label:'Email', val:selected.customer?.email || '—' },
                   { label:'Created', val:new Date(selected.createdAt).toLocaleDateString() },
                   { label:'Status', val:selected.status },
-                  
                 ].map(item => (
                   <div key={item.label} style={{ background:'#1a1a1a', padding:'10px 14px' }}>
                     <div style={{ fontSize:10, color:'#555', letterSpacing:1, textTransform:'uppercase', marginBottom:4 }}>{item.label}</div>
@@ -216,14 +236,12 @@ const updateStatus = async (id, status) => {
                   </div>
                 ))}
               </div>
-                {/* Address */}
-                {selected.address && (
+              {selected.address && (
                 <div style={{ background:'#1a1a1a', padding:'12px 14px', borderLeft:'3px solid #cc1414', marginBottom:12 }}>
-                    <div style={{ fontSize:10, color:'#555', letterSpacing:1, textTransform:'uppercase', marginBottom:4 }}>📍 Service Address</div>
-                    <div style={{ fontSize:13, color:'#ccc', lineHeight:1.7 }}>{selected.address}</div>
+                  <div style={{ fontSize:10, color:'#555', letterSpacing:1, textTransform:'uppercase', marginBottom:4 }}>📍 Service Address</div>
+                  <div style={{ fontSize:13, color:'#ccc', lineHeight:1.7 }}>{selected.address}</div>
                 </div>
-                )}
-              {/* Notes */}
+              )}
               {selected.notes && (
                 <div style={{ background:'#1a1a1a', padding:'12px 14px', borderLeft:'3px solid #cc1414' }}>
                   <div style={{ fontSize:10, color:'#555', letterSpacing:1, textTransform:'uppercase', marginBottom:4 }}>Notes</div>
@@ -248,7 +266,7 @@ const updateStatus = async (id, status) => {
             </div>
 
             {/* Contact actions */}
-            <div style={{ display:'flex', gap:12, marginBottom:24 }}>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:12, marginBottom:24 }}>
               {selected.customer?.phone && (
                 <a href={`tel:${selected.customer.phone}`} style={{ ...btnRed, textDecoration:'none' }}>📞 Call</a>
               )}
@@ -274,7 +292,7 @@ const updateStatus = async (id, status) => {
           position:'fixed', inset:0, background:'rgba(0,0,0,0.85)',
           display:'flex', alignItems:'center', justifyContent:'center', zIndex:100,
         }}>
-          <div style={{ background:'#141414', border:'1px solid #333', padding:32, width:520, maxWidth:'90vw' }}>
+          <div style={{ background:'#141414', border:'1px solid #333', padding: isMobile ? 20 : 32, width:520, maxWidth:'95vw', maxHeight:'90vh', overflowY:'auto' }}>
             <h3 style={{ fontSize:18, fontWeight:700, color:'#fff', marginBottom:24 }}>New Booking</h3>
             <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
               <div>
@@ -293,7 +311,7 @@ const updateStatus = async (id, status) => {
                   {SERVICE_OPTIONS.map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12 }}>
                 <div>
                   <label style={labelStyle}>Date</label>
                   <input type="date" value={formData.appointmentDate} onChange={e => setFormData(f => ({...f, appointmentDate:e.target.value}))} style={inputStyle}/>
@@ -304,14 +322,14 @@ const updateStatus = async (id, status) => {
                 </div>
               </div>
               <div>
-  <label style={labelStyle}>Address <span style={{ color:'#444' }}>(for mobile service)</span></label>
-  <input
-    placeholder="e.g. 123 Main St, Millbrae, CA"
-    value={formData.address || ''}
-    onChange={e => setFormData(f => ({...f, address:e.target.value}))}
-    style={inputStyle}
-  />
-</div>
+                <label style={labelStyle}>Address <span style={{ color:'#444' }}>(for mobile service)</span></label>
+                <input
+                  placeholder="e.g. 123 Main St, Millbrae, CA"
+                  value={formData.address || ''}
+                  onChange={e => setFormData(f => ({...f, address:e.target.value}))}
+                  style={inputStyle}
+                />
+              </div>
               <div>
                 <label style={labelStyle}>Notes</label>
                 <textarea value={formData.notes} onChange={e => setFormData(f => ({...f, notes:e.target.value}))} placeholder="Any notes..." style={{ ...inputStyle, minHeight:80, resize:'vertical' }}/>
@@ -331,7 +349,7 @@ const updateStatus = async (id, status) => {
           position:'fixed', inset:0, background:'rgba(0,0,0,0.85)',
           display:'flex', alignItems:'center', justifyContent:'center', zIndex:100,
         }}>
-          <div style={{ background:'#141414', border:'1px solid #333', padding:32, width:520, maxWidth:'90vw' }}>
+          <div style={{ background:'#141414', border:'1px solid #333', padding: isMobile ? 20 : 32, width:520, maxWidth:'95vw', maxHeight:'90vh', overflowY:'auto' }}>
             <h3 style={{ fontSize:18, fontWeight:700, color:'#fff', marginBottom:24 }}>Edit Booking</h3>
             <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
               <div>
@@ -341,7 +359,7 @@ const updateStatus = async (id, status) => {
                   {SERVICE_OPTIONS.map(o => <option key={o}>{o}</option>)}
                 </select>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12 }}>
                 <div>
                   <label style={labelStyle}>Date</label>
                   <input type="date" value={editData.appointmentDate || ''} onChange={e => setEditData(d => ({...d, appointmentDate:e.target.value}))} style={inputStyle}/>
@@ -363,12 +381,12 @@ const updateStatus = async (id, status) => {
               <div>
                 <label style={labelStyle}>Address <span style={{ color:'#444' }}>(for mobile service)</span></label>
                 <input
-                    placeholder="e.g. 123 Main St, Millbrae, CA"
-                    value={editData.address || ''}
-                    onChange={e => setEditData(d => ({...d, address:e.target.value}))}
-                    style={inputStyle}
+                  placeholder="e.g. 123 Main St, Millbrae, CA"
+                  value={editData.address || ''}
+                  onChange={e => setEditData(d => ({...d, address:e.target.value}))}
+                  style={inputStyle}
                 />
-                </div>
+              </div>
               <div>
                 <label style={labelStyle}>Notes</label>
                 <textarea value={editData.notes || ''} onChange={e => setEditData(d => ({...d, notes:e.target.value}))} style={{ ...inputStyle, minHeight:80, resize:'vertical' }}/>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import config from '../config'
 import Invoice from '../components/Invoice'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const EMPTY_CUSTOMER = { firstName:'', lastName:'', carMake:'', carModel:'', carYear:'', phone:'', email:'' }
 const EMPTY_VISIT = { visitDate:'', notes:'' }
@@ -8,6 +9,7 @@ const EMPTY_ITEM        = { service:'', price:'', notes:'', isCustom: false }
 const EMPTY_CUSTOM_ITEM = { service:'', price:'', notes:'', isCustom: true  }
 
 export default function Customers() {
+  const isMobile = useIsMobile()
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -183,10 +185,10 @@ export default function Customers() {
   }
 
   return (
-    <div style={{ display:'flex', height:'100vh', overflow:'hidden' }}>
+    <div style={{ display:'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', overflow: isMobile ? 'visible' : 'hidden' }}>
 
       {/* LEFT — Customer list */}
-      <div style={{ width:320, borderRight:'1px solid #222', display:'flex', flexDirection:'column' }}>
+      <div style={{ width: isMobile ? '100%' : 320, borderRight: isMobile ? 'none' : '1px solid #222', borderBottom: isMobile ? '1px solid #222' : 'none', display: isMobile && selected ? 'none' : 'flex', flexDirection:'column', maxHeight: isMobile ? '45vh' : 'unset' }}>
         <div style={{ padding:'24px 20px 16px', borderBottom:'1px solid #1a1a1a' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
             <h2 style={{ fontSize:16, fontWeight:600, color:'#fff' }}>Customers</h2>
@@ -220,7 +222,11 @@ export default function Customers() {
       </div>
 
       {/* RIGHT — Customer detail */}
-      <div style={{ flex:1, overflowY:'auto', padding:32 }}>
+      <div style={{ flex:1, overflowY:'auto', padding: isMobile ? 16 : 32, display: isMobile && !selected ? 'none' : 'block' }}>
+        {/* Mobile back button */}
+        {isMobile && selected && (
+          <button onClick={() => setSelected(null)} style={{ ...btnGhost, marginBottom:16, fontSize:13 }}>← Back</button>
+        )}
         {!selected ? (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%' }}>
             <div style={{ fontSize:48, marginBottom:16 }}>👥</div>
@@ -241,7 +247,7 @@ export default function Customers() {
                   <button onClick={() => { setShowNewVisit(true); setVisitItems([{ ...EMPTY_ITEM }]) }} style={btnRed}>+ New Visit</button>
                 </div>
               </div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12 }}>
                 {[
                   { label:'Phone', val:selected.phone || '—' },
                   { label:'Email', val:selected.email || '—' },
@@ -286,7 +292,7 @@ export default function Customers() {
                   </div>
 
                   {visitItems.map((item, index) => (
-                    <div key={index} style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr auto', gap:8, marginBottom:8, alignItems:'center' }}>
+                    <div key={index} style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '2fr 1fr 1fr auto', gap:8, marginBottom:8, alignItems:'center' }}>
                       {item.isCustom ? (
                         <input
                           placeholder="Type service name..."
@@ -411,7 +417,7 @@ export default function Customers() {
         }}>
           <div style={{ background:'#141414', border:'1px solid #333', padding:32, width:500, maxWidth:'90vw' }}>
             <h3 style={{ fontSize:18, fontWeight:700, color:'#fff', marginBottom:24 }}>New Customer</h3>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+            <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
               {[
                 { label:'First Name', key:'firstName', placeholder:'John' },
                 { label:'Last Name', key:'lastName', placeholder:'Smith' },
@@ -457,7 +463,7 @@ export default function Customers() {
         }}>
           <div style={{ background:'#141414', border:'1px solid #333', padding:32, width:500, maxWidth:'90vw' }}>
             <h3 style={{ fontSize:18, fontWeight:700, color:'#fff', marginBottom:24 }}>Edit Customer</h3>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+            <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap:12, marginBottom:12 }}>
               {[
                 { label:'First Name', key:'firstName', placeholder:'John' },
                 { label:'Last Name', key:'lastName', placeholder:'Smith' },

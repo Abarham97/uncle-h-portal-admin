@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import config from '../config'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const EMPTY_QUESTION = { parentID: 0, question: '', answer: '', sortOrder: 0 }
 
@@ -13,6 +14,7 @@ export default function Questions() {
   const [saving, setSaving] = useState(false)
   const [parentFilter, setParentFilter] = useState(0)
   const [breadcrumb, setBreadcrumb] = useState([{ id: 0, label: 'Root' }])
+  const isMobile = useIsMobile()
 
   useEffect(() => { fetchQuestions(parentFilter) }, [parentFilter])
 
@@ -81,14 +83,14 @@ export default function Questions() {
   }
 
   return (
-    <div style={{ padding: 32, height: '100vh', overflowY: 'auto' }}>
+    <div style={{ padding: isMobile ? 16 : 32, height: '100vh', overflowY: 'auto' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'center', gap: 12, marginBottom: 24 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 8 }}>Questions</h2>
           {/* Breadcrumb */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             {breadcrumb.map((crumb, i) => (
               <span key={crumb.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 {i > 0 && <span style={{ color: '#444' }}>›</span>}
@@ -106,14 +108,14 @@ export default function Questions() {
             ))}
           </div>
         </div>
-        <div style={{ display:'flex', gap:8 }}>
-  {breadcrumb.length > 1 && (
-    <button onClick={() => navigateTo(breadcrumb[breadcrumb.length - 2], breadcrumb.length - 2)} style={btnGhost}>
-      ← Back
-    </button>
-  )}
-  <button onClick={openAdd} style={btnRed}>+ Add Question</button>
-</div>
+        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          {breadcrumb.length > 1 && (
+            <button onClick={() => navigateTo(breadcrumb[breadcrumb.length - 2], breadcrumb.length - 2)} style={btnGhost}>
+              ← Back
+            </button>
+          )}
+          <button onClick={openAdd} style={btnRed}>+ Add Question</button>
+        </div>
       </div>
 
       {/* Questions list */}
@@ -126,18 +128,17 @@ export default function Questions() {
           {questions.map(q => (
             <div key={q.id} style={{
               background: '#141414', border: '1px solid #222',
-              padding: '16px 20px', display: 'flex',
-              justifyContent: 'space-between', alignItems: 'center',
+              padding: '16px 20px',
               borderLeft: selected?.id === q.id ? '3px solid #cc1414' : '3px solid transparent',
             }}>
-              <div style={{ flex: 1 }}>
+              <div style={{ marginBottom: 10 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: '#fff', marginBottom: 4 }}>{q.question}</div>
                 {q.answer
                   ? <div style={{ fontSize: 12, color: '#555', lineHeight: 1.5 }}>{q.answer}</div>
                   : <div style={{ fontSize: 11, color: '#cc1414', letterSpacing: 1 }}>HAS CHILDREN →</div>
                 }
               </div>
-              <div style={{ display: 'flex', gap: 8, marginLeft: 16, flexShrink: 0 }}>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {!q.answer && (
                   <button onClick={() => navigateInto(q)} style={btnGhost}>View Children</button>
                 )}
@@ -155,7 +156,7 @@ export default function Questions() {
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
         }}>
-          <div style={{ background: '#141414', border: '1px solid #333', padding: 32, width: 540, maxWidth: '90vw' }}>
+          <div style={{ background: '#141414', border: '1px solid #333', padding: isMobile ? 20 : 32, width: 540, maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 24 }}>
               {isEdit ? 'Edit Question' : 'Add Question'}
             </h3>

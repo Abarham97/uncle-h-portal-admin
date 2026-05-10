@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import config from '../config'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const EMPTY_FORM = { beforeFile: null, afterFile: null, beforeUrl: '', afterUrl: '' }
 
@@ -11,7 +12,8 @@ export default function Images() {
   const [isEdit, setIsEdit]     = useState(false)
   const [editId, setEditId]     = useState(null)
   const [saving, setSaving]     = useState(false)
-  const [lightbox, setLightbox] = useState(null) // { url, label }
+  const [lightbox, setLightbox] = useState(null)
+  const isMobile = useIsMobile()
 
   useEffect(() => { fetchImages() }, [])
 
@@ -94,7 +96,7 @@ export default function Images() {
     new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 
   return (
-    <div style={{ padding: 32, height: '100vh', overflowY: 'auto' }}>
+    <div style={{ padding: isMobile ? 16 : 32, height: '100vh', overflowY: 'auto' }}>
 
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
@@ -172,12 +174,12 @@ export default function Images() {
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
         }}>
-          <div style={{ background: '#141414', border: '1px solid #333', padding: 32, width: 560, maxWidth: '92vw' }}>
+          <div style={{ background: '#141414', border: '1px solid #333', padding: isMobile ? 20 : 32, width: 560, maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 24 }}>
               {isEdit ? 'Edit Image Pair' : 'Add Image Pair'}
             </h3>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
               <SlotPicker
                 label="Before"
                 file={form.beforeFile}

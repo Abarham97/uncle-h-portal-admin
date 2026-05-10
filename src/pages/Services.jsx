@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import config from '../config'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const EMPTY_SERVICE = { num: '', icon: '', title: '', desc: '', sortOrder: 0, active: true }
 
@@ -11,6 +12,7 @@ export default function Services() {
   const [formData, setFormData] = useState(EMPTY_SERVICE)
   const [isEdit, setIsEdit] = useState(false)
   const [saving, setSaving] = useState(false)
+  const isMobile = useIsMobile()
 
   useEffect(() => { fetchServices() }, [showAll])
 
@@ -79,15 +81,15 @@ export default function Services() {
   }
 
   return (
-    <div style={{ padding: 32, height: '100vh', overflowY: 'auto' }}>
+    <div style={{ padding: isMobile ? 16 : 32, height: '100vh', overflowY: 'auto' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'flex-start' : 'flex-start', gap: 12, marginBottom: 24 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Services</h2>
           <div style={{ fontSize: 12, color: '#555' }}>{services.length} record{services.length !== 1 ? 's' : ''}</div>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <button
             onClick={() => setShowAll(v => !v)}
             style={showAll ? btnGhost : { ...btnGhost, color: '#cc1414', borderColor: '#cc1414' }}
@@ -98,14 +100,53 @@ export default function Services() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table / Cards */}
       {loading ? (
         <div style={{ color: '#555', fontSize: 13 }}>Loading...</div>
       ) : services.length === 0 ? (
         <div style={{ color: '#555', fontSize: 13 }}>No services found.</div>
+      ) : isMobile ? (
+        /* Mobile: card layout */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {services.map(svc => (
+            <div key={svc.id} style={{
+              background: '#141414', border: '1px solid #222', padding: '14px 16px',
+              opacity: svc.active ? 1 : 0.5,
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 22 }}>{svc.icon}</span>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{svc.title}</div>
+                    <div style={{ fontSize: 11, color: '#555', marginTop: 2 }}>{svc.num}</div>
+                  </div>
+                </div>
+                <span style={{
+                  fontSize: 10, fontWeight: 600, letterSpacing: 1, padding: '3px 8px',
+                  background: svc.active ? 'rgba(34,197,94,0.1)' : 'rgba(100,100,100,0.1)',
+                  color: svc.active ? '#22c55e' : '#555',
+                  border: `1px solid ${svc.active ? 'rgba(34,197,94,0.3)' : '#2a2a2a'}`,
+                  flexShrink: 0,
+                }}>
+                  {svc.active ? 'ACTIVE' : 'INACTIVE'}
+                </span>
+              </div>
+              {svc.desc && (
+                <div style={{ fontSize: 12, color: '#555', marginBottom: 10, lineHeight: 1.5 }}>{svc.desc}</div>
+              )}
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <button onClick={() => toggleActive(svc)} style={btnTiny}>
+                  {svc.active ? 'Deactivate' : 'Activate'}
+                </button>
+                <button onClick={() => openEdit(svc)} style={btnTiny}>Edit</button>
+                <button onClick={() => deleteService(svc.id)} style={btnTinyDanger}>Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
+        /* Desktop: table layout */
         <div style={{ border: '1px solid #222', overflow: 'hidden' }}>
-          {/* Table Header */}
           <div style={{ ...tableRow, background: '#1a1a1a', borderBottom: '1px solid #2a2a2a' }}>
             <div style={{ ...colNum, ...thStyle }}>NUM</div>
             <div style={{ ...colIcon, ...thStyle }}>ICON</div>
@@ -115,18 +156,13 @@ export default function Services() {
             <div style={{ ...colStatus, ...thStyle }}>STATUS</div>
             <div style={{ ...colActions, ...thStyle }}>ACTIONS</div>
           </div>
-
-          {/* Table Rows */}
           {services.map((svc, i) => (
-            <div
-              key={svc.id}
-              style={{
-                ...tableRow,
-                background: i % 2 === 0 ? '#141414' : '#161616',
-                borderBottom: '1px solid #1e1e1e',
-                opacity: svc.active ? 1 : 0.5,
-              }}
-            >
+            <div key={svc.id} style={{
+              ...tableRow,
+              background: i % 2 === 0 ? '#141414' : '#161616',
+              borderBottom: '1px solid #1e1e1e',
+              opacity: svc.active ? 1 : 0.5,
+            }}>
               <div style={{ ...colNum, fontSize: 13, color: '#aaa' }}>{svc.num}</div>
               <div style={{ ...colIcon, fontSize: 22 }}>{svc.icon}</div>
               <div style={{ ...colTitle, fontSize: 13, fontWeight: 600, color: '#fff' }}>{svc.title}</div>
@@ -163,13 +199,13 @@ export default function Services() {
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100,
         }}>
-          <div style={{ background: '#141414', border: '1px solid #333', padding: 32, width: 560, maxWidth: '92vw', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: '#141414', border: '1px solid #333', padding: isMobile ? 20 : 32, width: 560, maxWidth: '95vw', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 24 }}>
               {isEdit ? 'Edit Service' : 'Add Service'}
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                 <div>
                   <label style={labelStyle}>Number / Code *</label>
                   <input
@@ -210,7 +246,7 @@ export default function Services() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                 <div>
                   <label style={labelStyle}>Sort Order</label>
                   <input
