@@ -250,7 +250,7 @@ export default function Services() {
                 <div>
                   <label style={labelStyle}>Sort Order</label>
                   <input
-                    type="number"
+                    type="text"
                     value={formData.sortOrder}
                     onChange={e => setFormData(f => ({ ...f, sortOrder: parseInt(e.target.value) || 0 }))}
                     style={inputStyle}
